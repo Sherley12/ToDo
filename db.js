@@ -1,16 +1,14 @@
-const mariadb = require('mariadb');
-const pool = mariadb.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    connectionLimit: 10
-  });
-  
-  async function getConnection() {
-    return pool.getConnection();
-  }
-  
-  module.exports = {
-    getConnection
-  };
+require('dotenv').config();
+const { Sequelize } = require('sequelize');
+
+
+const sequelize = new Sequelize({
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT || 3306, 
+  dialect: 'mariadb', 
+});
+
+module.exports = sequelize; 

@@ -1,20 +1,17 @@
-const backendUrl = 'http://10.10.1.184:3000/api';
-
-document.addEventListener("DOMContentLoaded", fetchTasks);
-
 async function fetchTasks() {
   try {
-    const response = await fetch (`http://10.10.1.184:3000/api/tasks`);
+    const response = await fetch(`http://localhost:5000/api/tasks`);
     const data = await response.json();
     const taskList = document.getElementById("task-list");
 
-    taskList.innerHTML = ""; 
+    taskList.innerHTML = "";
     data.response.tasks.forEach((task) => {
       const li = document.createElement("li");
       li.innerHTML = `
-        <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTask(${task}, this.checked)">
+        <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTask(${task.id}, this.checked)">
         <span>${task.text}</span>
         <button onclick="deleteTask(${task.id})">Delete</button>
+        <button onclick="editTask(${task.id}, '${task.text}')">Edit</button> <!-- Add edit button -->
       `;
       taskList.appendChild(li);
     });
@@ -30,7 +27,7 @@ async function createTask() {
 
   if (taskText) {
     try {
-      const response = await fetch('http://10.10.1.184:3000/api/tasks', {
+      const response = await fetch(`http://localhost:5000/api/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -39,10 +36,8 @@ async function createTask() {
       });
 
       if (response.ok) {
-        taskInput.value = "";
-        fetchTasks();
-      } else {
-        console.error("HTTP error:", response.status);
+        taskInput.value = ""; 
+        fetchTasks(); 
       }
     } catch (error) {
       console.error("Error creating task:", error);
@@ -55,34 +50,31 @@ async function createTask() {
 
 async function toggleTask(id, isCompleted) {
   try {
-    const response = await fetch(`http://10.10.1.184:3000/api/tasks`, {
+    const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ completed: isCompleted })
+      body: JSON.stringify({ completed: isCompleted }) 
     });
 
     if (response.ok) {
       fetchTasks(); 
-    } else {
-
-      console.error("HTTP error:", response.status);
     }
   } catch (error) {
     console.error("Error updating task:", error);
   }
 }
 
-
+// Delete a task
 async function deleteTask(id) {
   try {
-    const response = await fetch(`http://10.10.1.184:3000/api/tasks`, {
-      method: 'DELETE'
+    const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+      method: 'DELETE',
     });
 
     if (response.ok) {
-      fetchTasks(); 
+      fetchTasks(); // Refresh the task list
     } else {
       console.error("Error deleting task:", response.statusText);
     }
@@ -90,4 +82,32 @@ async function deleteTask(id) {
     console.error("Error deleting task:", error);
   }
 }
+
+
+async function editTask(id, currentText) {
+  const newText = prompt("Edit task text:", currentText); 
+  if (newText) {
+    try {
+      const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: newText }), 
+      });
+
+      if (response.ok) {
+        fetchTasks(); 
+      }
+    } catch (error) {
+      console.error("Error editing task:", error);
+    }
+  } else {
+    console.error("No new text provided for task"); 
+  }
+}
+
+
+
+
 
